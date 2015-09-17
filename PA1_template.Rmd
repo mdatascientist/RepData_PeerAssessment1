@@ -91,7 +91,7 @@ dailyActivity <- na.omit(data.frame(steps = dfactivity$steps
        ,cex.main = 0.7)
   
   maxSteps <- max(avgDailyActivity$x)
-  cat("The 5-minute interval, on average across all the days in the dataset, that contains the maximum number of steps:",as.character(round(maxSteps,2)))
+  cat("The 5-minute interval, on average across all the days in the dataset,)\nthat contains the maximum number of steps:",as.character(round(maxSteps,2)))
 ```
   
 ### Imputing missing values
