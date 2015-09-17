@@ -1,11 +1,7 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
-```{r}
+
+```r
   options(warn = -1)
   library(plyr)
   library(lattice)
@@ -17,7 +13,8 @@ output:
 * Process/transform the data (if necessary) into a format suitable for your analysis  
 
 
-```{r}
+
+```r
   # Set working directory
   setwd ("C:/Temp")
   # Download data.zip from the web
@@ -40,7 +37,8 @@ output:
 * Make a histogram of the total number of steps taken each day
 * Calculate and report the mean and median total number of steps taken per day
 
-```{r fig.height=4,fig.width=6}
+
+```r
   spdTotal <- aggregate(steps ~ date,dfactivity,sum)
   
   hist(spdTotal$steps
@@ -53,15 +51,28 @@ output:
        ,cex.lab = 0.7
        ,cex.axis = 0.7
        ,cex.main = 0.7)
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
+```r
   dfactivityna <- na.omit(dfactivity)
   
   stepsMean <- mean(dfactivityna$steps[dfactivityna$steps > 0]) # Ignore Zeros
   cat("What is mean total number of steps taken per day?:",as.character(round(stepsMean,4)))
+```
 
+```
+## What is mean total number of steps taken per day?: 134.2607
+```
+
+```r
   stepsMedian <- median(dfactivityna$steps[dfactivityna$steps > 0]) # Ignore Zeros
   cat("What is median total number of steps taken per day?:",as.character(stepsMedian))
+```
 
+```
+## What is median total number of steps taken per day?: 56
 ```
 
 ### What is the average daily activity pattern?
@@ -71,7 +82,8 @@ output:
 * Which 5-minute interval, on average across all the days in the dataset, 
     contains the maximum number of steps?
 
-```{r fig.height=4,fig.width=6}
+
+```r
 dailyActivity <- na.omit(data.frame(steps = dfactivity$steps
                                       ,interval = dfactivity$interval
                                       ,day = dfactivity$date))
@@ -89,9 +101,17 @@ dailyActivity <- na.omit(data.frame(steps = dfactivity$steps
        ,cex.lab = 0.7
        ,cex.axis = 0.7
        ,cex.main = 0.7)
-  
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+
+```r
   maxSteps <- max(avgDailyActivity$x)
   cat("The 5-minute interval, on average across all the days in the dataset, that contains the maximum number of steps:",as.character(round(maxSteps,2)))
+```
+
+```
+## The 5-minute interval, on average across all the days in the dataset, that contains the maximum number of steps: 206.17
 ```
   
 ### Imputing missing values
@@ -118,7 +138,8 @@ dailyActivity <- na.omit(data.frame(steps = dfactivity$steps
 * What is the impact of imputing missing data on the estimates of the 
     total daily number of steps?
 
-```{r fig.height=4,fig.width=6}
+
+```r
 avgIntervalSteps <- aggregate(activity$steps ~ activity$interval,FUN = mean,na.rm = TRUE)
   #NA rows only
   naIntervalSteps <-  activity[is.na(activity$steps),]
@@ -128,7 +149,13 @@ avgIntervalSteps <- aggregate(activity$steps ~ activity$interval,FUN = mean,na.r
   missingValues <- nrow(naIntervalSteps)
   
   cat("Total number of missing values in the dataset: ",as.character(missingValues))
+```
 
+```
+## Total number of missing values in the dataset:  2304
+```
+
+```r
   # Update the NA rows with the average mean for the corresponding Interval  
   naIntervalSteps$steps <- avgIntervalSteps[match(naIntervalSteps$interval, avgIntervalSteps$`activity$interval`),2]
   
@@ -151,13 +178,26 @@ avgIntervalSteps <- aggregate(activity$steps ~ activity$interval,FUN = mean,na.r
        ,cex.lab = 0.7
        ,cex.axis = 0.7
        ,cex.main = 0.7)
-  
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
+```r
   spdAllMean <- mean(dfhist$x)
   cat("Imputed - Mean total number of steps taken per day:",as.character(round(spdAllMean,4)))
+```
 
+```
+## Imputed - Mean total number of steps taken per day: 2280.2222
+```
+
+```r
   spdAllMedian <- median(dfhist$x)
   cat("Imputed - Median total number of steps taken per day:",as.character(spdAllMedian))
+```
 
+```
+## Imputed - Median total number of steps taken per day: 2084
 ```
   
 ### Are there differences in activity patterns between weekdays and weekends?
@@ -173,7 +213,8 @@ avgIntervalSteps <- aggregate(activity$steps ~ activity$interval,FUN = mean,na.r
     averaged across all weekday days or weekend days (y-axis). The plot should 
     look something like the following, which was created using simulated data:
 
-```{r fig.height=6,fig.width=7}
+
+```r
 dfWeekdays <- subset(dfData,weekdays(as.Date(dfData$date)) %in% c("Monday", "Tuesday", "Wednesday", "Thursday","Friday"))
   dfWeekends <- subset(dfData,weekdays(as.Date(dfData$date)) %in% c("Saturday", "Sunday"))
   
@@ -181,9 +222,21 @@ dfWeekdays <- subset(dfData,weekdays(as.Date(dfData$date)) %in% c("Monday", "Tue
   avgWeekends <- mean(dfWeekends$steps)
   
   cat("Average Weekdays:",as.character(round(avgWeekdays,4)))
+```
 
+```
+## Average Weekdays: 35.6086
+```
+
+```r
   cat("Average Weekends:",as.character(round(avgWeekends,4)))
+```
 
+```
+## Average Weekends: 42.3646
+```
+
+```r
   dfData$dayType <- factor(weekdays(as.Date(dfData$date)) %in% c("Monday", "Tuesday", "Wednesday", "Thursday","Friday")
          ,levels = c(FALSE, TRUE)
          ,labels = c('weekend', 'weekday'))
@@ -198,3 +251,5 @@ dfWeekdays <- subset(dfData,weekdays(as.Date(dfData$date)) %in% c("Monday", "Tue
          ,type = "l"
          ,layout = c(1,2))
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
