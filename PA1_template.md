@@ -15,7 +15,7 @@
 
 
 ```r
-  # Set working directory
+# Set working directory
   setwd ("C:/Temp")
   # Download data.zip from the web
   download.file("http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",destfile = "activity.zip",mode = "wb",cacheOK = FALSE)
@@ -26,9 +26,9 @@
                        ,header = TRUE
                        ,stringsAsFactors = FALSE)
   
-  dfactivity <- data.frame(steps = as.numeric(activity$steps)
+  dfactivity <- na.omit(data.frame(steps = as.numeric(activity$steps)
                            ,date = as.Date(activity$date)
-                           ,interval = as.numeric(activity$interval))
+                           ,interval = as.numeric(activity$interval)))
 ```
 
 
@@ -56,23 +56,21 @@
 ![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
 
 ```r
-  dfactivityna <- na.omit(dfactivity)
-  
-  stepsMean <- mean(dfactivityna$steps[dfactivityna$steps > 0]) # Ignore Zeros
-  cat("What is mean total number of steps taken per day?:",as.character(round(stepsMean,4)))
+  stepsMean <- mean(spdTotal$steps)
+  cat("What is mean total number of steps taken per day?:",as.character(round(stepsMean,4)),"\n\n")
 ```
 
 ```
-## What is mean total number of steps taken per day?: 134.2607
+## What is mean total number of steps taken per day?: 10766.1887
 ```
 
 ```r
-  stepsMedian <- median(dfactivityna$steps[dfactivityna$steps > 0]) # Ignore Zeros
-  cat("What is median total number of steps taken per day?:",as.character(stepsMedian))
+  stepsMedian <- median(spdTotal$steps) # Ignore Zeros
+  cat("What is median total number of steps taken per day?:",as.character(stepsMedian),"\n\n")
 ```
 
 ```
-## What is median total number of steps taken per day?: 56
+## What is median total number of steps taken per day?: 10765
 ```
 
 ### What is the average daily activity pattern?
@@ -84,14 +82,12 @@
 
 
 ```r
-dailyActivity <- na.omit(data.frame(steps = dfactivity$steps
-                                      ,interval = dfactivity$interval
-                                      ,day = dfactivity$date))
+avgDailyActivity <- aggregate(activity$steps, 
+                                by = list(activity$interval), 
+                                FUN = mean, 
+                                na.rm = TRUE)
   
-  avgDailyActivity <- aggregate(dailyActivity$steps
-                                ,by = list(dailyActivity$interval)
-                                ,FUN = mean
-                                ,na.rm = TRUE)
+  names(avgDailyActivity) <- c("interval","steps")
   
   plot(avgDailyActivity
        ,type = "l"
@@ -106,12 +102,12 @@ dailyActivity <- na.omit(data.frame(steps = dfactivity$steps
 ![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
 ```r
-  maxSteps <- max(avgDailyActivity$x)
-  cat("The 5-minute interval, on average across all the days in the dataset,)\nthat contains the maximum number of steps:",as.character(round(maxSteps,2)))
+  maxSteps <- max(avgDailyActivity$steps)
+  cat("The 5-minute interval, on average across all the days in the dataset, \nthat contains the maximum number of steps:",as.character(round(maxSteps,2)),"\n\n")
 ```
 
 ```
-## The 5-minute interval, on average across all the days in the dataset,)
+## The 5-minute interval, on average across all the days in the dataset, 
 ## that contains the maximum number of steps: 206.17
 ```
   
@@ -142,14 +138,15 @@ dailyActivity <- na.omit(data.frame(steps = dfactivity$steps
 
 ```r
 avgIntervalSteps <- aggregate(activity$steps ~ activity$interval,FUN = mean,na.rm = TRUE)
-  #NA rows only
-  naIntervalSteps <-  activity[is.na(activity$steps),]
+  # NA rows only
+  naIntervalSteps <- activity[is.na(activity$steps),]
   # NON NA rows only
-  notnaIntervalSteps <-  activity[!is.na(activity$steps),]
+  notnaIntervalSteps <- activity[!is.na(activity$steps),]
   
+  # Calculate the number of missing values
   missingValues <- nrow(naIntervalSteps)
   
-  cat("Total number of missing values in the dataset: ",as.character(missingValues))
+  cat("Total number of missing values in the dataset: ",as.character(missingValues),"\n\n")
 ```
 
 ```
@@ -164,12 +161,9 @@ avgIntervalSteps <- aggregate(activity$steps ~ activity$interval,FUN = mean,na.r
   dfData <- rbind(notnaIntervalSteps,naIntervalSteps)
   dfData$steps <- round(dfData$steps)
   
-  dfhist <- aggregate(dfData$steps
-                      ,by = list(dfData$interval)
-                      ,FUN = sum
-                      ,na.rm = TRUE)
+  dfhist <- spdTotal <- aggregate(steps ~ date,dfData,sum)
   
-  hist(dfhist$x
+  hist(dfhist$steps
        ,main = "Total number of \nsteps taken each day"
        ,xlab = "Steps"
        ,ylab = "Days"
@@ -184,21 +178,21 @@ avgIntervalSteps <- aggregate(activity$steps ~ activity$interval,FUN = mean,na.r
 ![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
 
 ```r
-  spdAllMean <- mean(dfhist$x)
-  cat("Imputed - Mean total number of steps taken per day:",as.character(round(spdAllMean,4)))
+  spdAllMean <- mean(dfhist$steps)
+  cat("Imputed - Mean total number of steps taken per day:",as.character(round(spdAllMean,4)),"\n\n")
 ```
 
 ```
-## Imputed - Mean total number of steps taken per day: 2280.2222
+## Imputed - Mean total number of steps taken per day: 10765.6393
 ```
 
 ```r
-  spdAllMedian <- median(dfhist$x)
-  cat("Imputed - Median total number of steps taken per day:",as.character(spdAllMedian))
+  spdAllMedian <- median(dfhist$steps)
+  cat("Imputed - Median total number of steps taken per day:",as.character(spdAllMedian),"\n\n")
 ```
 
 ```
-## Imputed - Median total number of steps taken per day: 2084
+## Imputed - Median total number of steps taken per day: 10762
 ```
   
 ### Are there differences in activity patterns between weekdays and weekends?
@@ -211,33 +205,13 @@ avgIntervalSteps <- aggregate(activity$steps ~ activity$interval,FUN = mean,na.r
 
 * Make a panel plot containing a time series plot (i.e. type = "l") 
     of the 5-minute interval (x-axis) and the average number of steps taken, 
-    averaged across all weekday days or weekend days (y-axis). The plot should 
-    look something like the following, which was created using simulated data:
+    averaged across all weekday days or weekend days (y-axis). 
 
 
 ```r
 dfWeekdays <- subset(dfData,weekdays(as.Date(dfData$date)) %in% c("Monday", "Tuesday", "Wednesday", "Thursday","Friday"))
   dfWeekends <- subset(dfData,weekdays(as.Date(dfData$date)) %in% c("Saturday", "Sunday"))
   
-  avgWeekdays <- mean(dfWeekdays$steps)
-  avgWeekends <- mean(dfWeekends$steps)
-  
-  cat("Average Weekdays:",as.character(round(avgWeekdays,4)))
-```
-
-```
-## Average Weekdays: 35.6086
-```
-
-```r
-  cat("Average Weekends:",as.character(round(avgWeekends,4)))
-```
-
-```
-## Average Weekends: 42.3646
-```
-
-```r
   dfData$dayType <- factor(weekdays(as.Date(dfData$date)) %in% c("Monday", "Tuesday", "Wednesday", "Thursday","Friday")
          ,levels = c(FALSE, TRUE)
          ,labels = c('weekend', 'weekday'))
