@@ -102,13 +102,14 @@ avgDailyActivity <- aggregate(activity$steps,
 ![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
 ```r
-  maxSteps <- max(avgDailyActivity$steps)
-  cat("The 5-minute interval, on average across all the days in the dataset, \nthat contains the maximum number of steps:",as.character(round(maxSteps,2)),"\n\n")
+  maxSteps <- avgDailyActivity[order(-avgDailyActivity$steps,avgDailyActivity$interval),]
+  maxInterval <- head(maxSteps$interval,1)
+  cat("The 5-minute interval, on average across all the days in the dataset, \nthat contains the maximum number of steps:",as.character(round(maxInterval,2)),"\n\n")
 ```
 
 ```
 ## The 5-minute interval, on average across all the days in the dataset, 
-## that contains the maximum number of steps: 206.17
+## that contains the maximum number of steps: 835
 ```
   
 ### Imputing missing values
